@@ -13,18 +13,23 @@ import androidx.appcompat.app.AppCompatActivity
 import android.app.NotificationManager
 import android.widget.SeekBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.app.NotificationManagerCompat
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var seekBar: SeekBar
     private lateinit var tvSleepValue: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        findViewById<Button>(R.id.btn_setAlarm).setOnClickListener {
-            scheduleAlarmIn5s()
-        }
+//        findViewById<Button>(R.id.btn_setAlarm).setOnClickListener {
+//            scheduleAlarmIn5s()
+//        }
         seekBar = findViewById(R.id.seekBar)
         tvSleepValue = findViewById(R.id.tvSleepValue)
 
@@ -48,7 +53,48 @@ class MainActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(sb: SeekBar?) {}
             override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
+        findViewById<Button>(R.id.btn_setAlarm).setOnClickListener {
+            val stepsPicked = seekBar.progress                // 0..N, each step = 10 minutes
+            if (stepsPicked == 0) {
+                scheduleAlarmIn5s()                           // quick test path
+                return@setOnClickListener
+            }
 
+            val totalMinutes = stepsPicked * 10 + 1           // as you requested (+1 minute buffer)
+            val wakeTime = Calendar.getInstance().apply {
+                add(Calendar.MINUTE, totalMinutes)
+            }
+
+            // permission check for exact alarms on Android S+
+            val alarmMgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmMgr.canScheduleExactAlarms()) {
+                startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                    data = Uri.parse("package:$packageName")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+                return@setOnClickListener
+            }
+
+            // schedule the alarm (reuses requestCode 1001 you already use)
+            val alarmIntent = Intent(this, AlarmReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(
+                this, 1001, alarmIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmMgr.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, wakeTime.timeInMillis, pendingIntent)
+            } else {
+                alarmMgr.setExact(AlarmManager.RTC_WAKEUP, wakeTime.timeInMillis, pendingIntent)
+            }
+
+            // persist for BootReceiver (optional but consistent)
+            getSharedPreferences("alarms", Context.MODE_PRIVATE)
+                .edit().putLong("next_alarm_ms", wakeTime.timeInMillis).apply()
+
+            val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
+            Toast.makeText(this, "Alarm set for ${fmt.format(wakeTime.time)}", Toast.LENGTH_LONG).show()
+        }
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         val alreadyOpened = prefs.getBoolean("opened_notification_settings", false)
 
