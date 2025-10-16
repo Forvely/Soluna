@@ -27,9 +27,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-//        findViewById<Button>(R.id.btn_setAlarm).setOnClickListener {
-//            scheduleAlarmIn5s()
-//        }
+
         seekBar = findViewById(R.id.seekBar)
         tvSleepValue = findViewById(R.id.tvSleepValue)
 
