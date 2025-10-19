@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import java.util.concurrent.TimeUnit
 
 class FullscreenAlarmActivity : AppCompatActivity() {
 
@@ -31,10 +32,16 @@ class FullscreenAlarmActivity : AppCompatActivity() {
         // make hardware volume buttons control the alarm stream while this activity is visible
         volumeControlStream = AudioManager.STREAM_ALARM
 
-        findViewById<Button>(R.id.dismissButton).setOnClickListener {
+        findViewById<Button>(R.id.btn_Dismiss).setOnClickListener {
             // stop foreground service playing the alarm and finish activity
             stopService(Intent(this, AlarmPlayerService::class.java))
             finish()
+        }
+        findViewById<Button>(R.id.btn_Snooze).setOnClickListener {
+            // stop foreground service playing the alarm and finish activity, then schedule a new alarm in _ minutes/seconds
+            stopService(Intent(this, AlarmPlayerService::class.java))
+            finish()
+            scheduleAlarmIn(5, TimeUnit.SECONDS)
         }
     }
 }

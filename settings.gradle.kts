@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "IWILLWORKV6"
+rootProject.name = "Soluna"
 include(":app")
  

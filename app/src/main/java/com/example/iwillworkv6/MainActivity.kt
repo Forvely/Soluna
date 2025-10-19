@@ -18,6 +18,8 @@ import androidx.core.app.NotificationManagerCompat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import java.util.concurrent.TimeUnit
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -30,6 +32,11 @@ class MainActivity : AppCompatActivity() {
 
         seekBar = findViewById(R.id.seekBar)
         tvSleepValue = findViewById(R.id.tvSleepValue)
+
+        // TEST ALARM
+        findViewById<Button>(R.id.testButton).setOnClickListener {
+            scheduleAlarmIn(5, TimeUnit.SECONDS)
+        }
 
         // 2) helper to update the TextView
         fun updateDisplay(progress: Int) {
@@ -54,11 +61,11 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_setAlarm).setOnClickListener {
             val stepsPicked = seekBar.progress                // 0..N, each step = 10 minutes
             if (stepsPicked == 0) {
-                scheduleAlarmIn5s()                           // quick test path
+                scheduleAlarmIn(5, TimeUnit.SECONDS)
                 return@setOnClickListener
             }
 
-            val totalMinutes = stepsPicked * 10 + 1           // as you requested (+1 minute buffer)
+            val totalMinutes = stepsPicked * 10 + 1
             val wakeTime = Calendar.getInstance().apply {
                 add(Calendar.MINUTE, totalMinutes)
             }
@@ -121,37 +128,5 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
-
-    private fun scheduleAlarmIn5s() {
-        val alarmMgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (!alarmMgr.canScheduleExactAlarms()) {
-                // Send user to the exact alarm permission settings (they must grant)
-                startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
-                    data = Uri.parse("package:$packageName")
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                })
-                return
-            }
-        }
-
-        val i = Intent(this, AlarmReceiver::class.java)
-        val pi = PendingIntent.getBroadcast(
-            this, 1001, i,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val triggerAt = System.currentTimeMillis() + 5000L
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmMgr.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi)
-        } else {
-            alarmMgr.setExact(AlarmManager.RTC_WAKEUP, triggerAt, pi)
-        }
-
-        // Persist a flag so BootReceiver can reschedule if you expand to persistent alarms
-        getSharedPreferences("alarms", Context.MODE_PRIVATE)
-            .edit().putLong("next_alarm_ms", triggerAt).apply()
     }
 }
