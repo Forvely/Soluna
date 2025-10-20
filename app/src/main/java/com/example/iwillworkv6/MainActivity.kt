@@ -48,6 +48,11 @@ class MainActivity : AppCompatActivity() {
             val hours   = totalMinutes / 60
             val minutes = totalMinutes % 60
             tvSleepValue.text = "${hours} h ${minutes} m"
+            val wakeTime = Calendar.getInstance().apply {
+                add(Calendar.MINUTE, totalMinutes)
+            }
+            val formatter = java.text.SimpleDateFormat("hh:mm a", java.util.Locale.getDefault())
+            tvWakeUpTime.text = "Alarm will go off at ${formatter.format(wakeTime.time)}"
         }
 
         // initialize
@@ -69,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val totalMinutes = stepsPicked * 10 + 1
+            val totalMinutes = stepsPicked * 10
             val wakeTime = Calendar.getInstance().apply {
                 add(Calendar.MINUTE, totalMinutes)
             }
@@ -105,6 +110,35 @@ class MainActivity : AppCompatActivity() {
             val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
             Toast.makeText(this, "Alarm set for ${fmt.format(wakeTime.time)}", Toast.LENGTH_LONG).show()
         }
+
+        // CANCEL ALARM
+        findViewById<Button>(R.id.btn_cancel).setOnClickListener {
+            // cancel the scheduled alarm
+            val alarmMgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val cancelIntent = Intent(this, AlarmReceiver::class.java)
+            val cancelPi = PendingIntent.getBroadcast(
+                this,
+                1001,
+                cancelIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            alarmMgr.cancel(cancelPi)      // tell AlarmManager to cancel
+            cancelPi.cancel()              // cancel the PendingIntent
+
+            // stop the alarm audio foreground service (if running)
+            stopService(Intent(this, AlarmPlayerService::class.java))
+
+            // remove the notification
+            val nm = getSystemService(NotificationManager::class.java)
+            nm.cancel(AlarmReceiver.NOTIF_ID)
+
+            // clear stored alarm time so BootReceiver won't reschedule it
+            getSharedPreferences("alarms", Context.MODE_PRIVATE)
+                .edit().remove("next_alarm_ms").apply()
+
+            Toast.makeText(this, "Alarm cancelled", Toast.LENGTH_SHORT).show()
+        }
+
 
         findViewById<Button>(R.id.btn_openNotifSettings).setOnClickListener{
             startActivity(Intent().apply {
