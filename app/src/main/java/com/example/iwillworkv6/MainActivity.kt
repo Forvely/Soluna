@@ -22,9 +22,11 @@ import java.util.concurrent.TimeUnit
 
 
 
+
 class MainActivity : AppCompatActivity() {
     private lateinit var seekBar: SeekBar
     private lateinit var tvSleepValue: TextView
+    private lateinit var tvWakeUpTime: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,13 +34,15 @@ class MainActivity : AppCompatActivity() {
 
         seekBar = findViewById(R.id.seekBar)
         tvSleepValue = findViewById(R.id.tvSleepValue)
+        tvWakeUpTime = findViewById(R.id.tv_wakeUpTime)
+
 
         // TEST ALARM
         findViewById<Button>(R.id.testButton).setOnClickListener {
             scheduleAlarmIn(5, TimeUnit.SECONDS)
         }
 
-        // 2) helper to update the TextView
+        // helper to update the TextView
         fun updateDisplay(progress: Int) {
             val totalMinutes = progress * 10
             val hours   = totalMinutes / 60
@@ -46,10 +50,10 @@ class MainActivity : AppCompatActivity() {
             tvSleepValue.text = "${hours} h ${minutes} m"
         }
 
-        // 3) initialize
+        // initialize
         updateDisplay(seekBar.progress)
 
-        // 4) snap to steps of 1 (each = 10 min) and update text as you drag
+        // snap to steps of 1 (each = 10 min) and update text as you drag
         seekBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(sb: SeekBar?, prog: Int, fromUser: Boolean) {
                 // prog is already an int 0–72, each step = 10 min
@@ -69,6 +73,7 @@ class MainActivity : AppCompatActivity() {
             val wakeTime = Calendar.getInstance().apply {
                 add(Calendar.MINUTE, totalMinutes)
             }
+            android.util.Log.d("ALARM_DEBUG", "Alarm set for ${wakeTime.time}")
 
             // permission check for exact alarms on Android S+
             val alarmMgr = getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -100,6 +105,14 @@ class MainActivity : AppCompatActivity() {
             val fmt = SimpleDateFormat("HH:mm", Locale.getDefault())
             Toast.makeText(this, "Alarm set for ${fmt.format(wakeTime.time)}", Toast.LENGTH_LONG).show()
         }
+
+        findViewById<Button>(R.id.btn_openNotifSettings).setOnClickListener{
+            startActivity(Intent().apply {
+                action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
+            })
+        }
+
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         val alreadyOpened = prefs.getBoolean("opened_notification_settings", false)
 
