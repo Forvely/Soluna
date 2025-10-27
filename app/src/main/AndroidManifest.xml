@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <!-- Existing and New Permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT"/>
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="true"
@@ -21,39 +20,36 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.IWILLWORKV6">
-
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_settings" />
         <!-- Main Launcher Activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- Fullscreen Alarm Activity -->
+        </activity> <!-- Fullscreen Alarm Activity -->
         <activity
             android:name=".FullscreenAlarmActivity"
-            android:exported="true"
-            android:showWhenLocked="true"
-            android:turnScreenOn="true"
             android:excludeFromRecents="true"
+            android:exported="true"
             android:launchMode="singleTop"
+            android:showWhenLocked="true"
             android:taskAffinity=""
-            android:theme="@style/Theme.IWILLWORKV6" />
-
-        <!-- Alarm Receiver -->
+            android:theme="@style/Theme.IWILLWORKV6"
+            android:turnScreenOn="true" /> <!-- Alarm Receiver -->
         <receiver
             android:name=".AlarmReceiver"
-            android:exported="true" />
-
-        <!-- Alarm Player Service -->
+            android:exported="true" /> <!-- Alarm Player Service -->
         <service
             android:name=".AlarmPlayerService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
-
     </application>
 
 </manifest>

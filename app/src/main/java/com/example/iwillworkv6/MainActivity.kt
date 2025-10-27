@@ -139,13 +139,14 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Alarm cancelled", Toast.LENGTH_SHORT).show()
         }
 
-
+        // OPEN NOTIFICATION SETTINGS
         findViewById<Button>(R.id.btn_openNotifSettings).setOnClickListener{
             startActivity(Intent().apply {
                 action = android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS
                 putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, packageName)
             })
         }
+        // SETTINGS
 
         val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
         val alreadyOpened = prefs.getBoolean("opened_notification_settings", false)
